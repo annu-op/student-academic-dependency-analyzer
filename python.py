@@ -106,7 +106,12 @@ print("Overall Performance:", performance)
 
 deviation = marks - average
 
-normalized_marks = marks / np.max(marks)
+# Safe normalization (guard against division by zero)
+denom = np.max(marks) if marks.size > 0 else 0.0
+if denom != 0:
+    normalized_marks = marks / denom
+else:
+    normalized_marks = np.zeros_like(marks)
 
 feature_matrix = np.column_stack(
     (marks, deviation, normalized_marks)
@@ -163,7 +168,10 @@ Q, R = np.linalg.qr(feature_matrix)
 
 independent_columns = []
 
-tolerance = 1e-10
+# Stable tolerance relative to R's magnitude
+absRmax = np.max(np.abs(R)) if R.size > 0 else 0.0
+eps = np.finfo(R.dtype).eps if np.issubdtype(R.dtype, np.floating) else 1e-12
+tolerance = eps * max(R.shape) * (absRmax if absRmax != 0 else 1.0)
 
 for i in range(min(R.shape)):
 
@@ -171,7 +179,7 @@ for i in range(min(R.shape)):
         independent_columns.append(i)
 
 
-basis = feature_matrix[:, independent_columns]
+basis = feature_matrix[:, independent_columns] if len(independent_columns) > 0 else np.empty((feature_matrix.shape[0], 0))
 
 
 print("\n\n5. BASIS OF PERFORMANCE SPACE")
@@ -190,6 +198,10 @@ print(np.round(basis, 3))
 
 def gram_schmidt(matrix):
 
+    # Handle empty input
+    if matrix.size == 0 or matrix.shape[1] == 0:
+        return np.empty((matrix.shape[0], 0))
+
     orthogonal_vectors = []
 
     for i in range(matrix.shape[1]):
@@ -198,24 +210,35 @@ def gram_schmidt(matrix):
 
         for u in orthogonal_vectors:
 
+            denom = np.dot(u, u)
+            if denom == 0:
+                continue
+
             projection = (
                 np.dot(vector, u) /
-                np.dot(u, u)
+                denom
             ) * u
 
             vector = vector - projection
 
-        if np.linalg.norm(vector) > 1e-10:
+        if np.linalg.norm(vector) > 1e-12:
             orthogonal_vectors.append(vector)
 
     # Normalize vectors
+    if len(orthogonal_vectors) == 0:
+        return np.empty((matrix.shape[0], 0))
+
     orthonormal_vectors = []
 
     for vector in orthogonal_vectors:
 
-        unit_vector = vector / np.linalg.norm(vector)
+        norm = np.linalg.norm(vector)
+        if norm > 1e-12:
+            unit_vector = vector / norm
+            orthonormal_vectors.append(unit_vector)
 
-        orthonormal_vectors.append(unit_vector)
+    if len(orthonormal_vectors) == 0:
+        return np.empty((matrix.shape[0], 0))
 
     return np.column_stack(orthonormal_vectors)
 
@@ -226,7 +249,11 @@ orthonormal_basis = gram_schmidt(basis)
 print("\n\n6. GRAM-SCHMIDT ORTHONORMAL BASIS")
 print("-" * 50)
 
-print(np.round(orthonormal_basis, 3))
+# Print safely when empty
+if orthonormal_basis.size == 0:
+    print("(No orthonormal basis could be formed from the basis matrix.)")
+else:
+    print(np.round(orthonormal_basis, 3))
 
 
 # ------------------------------------------------------------
@@ -236,16 +263,19 @@ print(np.round(orthonormal_basis, 3))
 print("\n\n7. ORTHOGONALITY VERIFICATION")
 print("-" * 50)
 
-gram_matrix = np.dot(
-    orthonormal_basis.T,
-    orthonormal_basis
-)
+if orthonormal_basis.size == 0:
+    print("No orthonormal basis available to verify orthogonality.")
+else:
+    gram_matrix = np.dot(
+        orthonormal_basis.T,
+        orthonormal_basis
+    )
 
-print("QᵀQ =")
-print(np.round(gram_matrix, 3))
+    print("QᵀQ =")
+    print(np.round(gram_matrix, 3))
 
-print("\nIf QᵀQ is approximately the Identity Matrix,")
-print("the basis vectors are orthonormal.")
+    print("\nIf QᵀQ is approximately the Identity Matrix,")
+    print("the basis vectors are orthonormal.")
 
 
 # ------------------------------------------------------------
@@ -256,13 +286,19 @@ def project_vector(vector, basis):
 
     projection = np.zeros_like(vector)
 
+    if basis.size == 0 or basis.shape[1] == 0:
+        return projection
+
     for i in range(basis.shape[1]):
 
         u = basis[:, i]
+        denom = np.dot(u, u)
+        if denom == 0:
+            continue
 
         projection += (
             np.dot(vector, u) /
-            np.dot(u, u)
+            denom
         ) * u
 
     return projection
