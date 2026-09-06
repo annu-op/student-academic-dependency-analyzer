@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Academic Dependency Analyzer</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f7fb;
+            color: #1f2937;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        header {
+            background: #1e3a8a;
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .card h2 {
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .subject-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            margin-bottom: 5px;
+        }
+
+        button {
+            border: none;
+            padding: 13px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            margin-right: 8px;
+            margin-top: 10px;
+        }
+
+        .primary {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        .primary:hover {
+            background: #172554;
+        }
+
+        .secondary {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .result-box {
+            background: #f8fafc;
+            border-left: 5px solid #1e3a8a;
+            padding: 15px;
+            margin: 12px 0;
+            border-radius: 5px;
+        }
+
+        .result-title {
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+        }
+
+        .matrix {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        td {
+            background: #f8fafc;
+        }
+
+        .good {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .warning {
+            color: #b45309;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .concepts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .concept {
+            background: #eff6ff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            margin-top: 25px;
+        }
+
+        @media(max-width: 700px) {
+            .row,
+            .subject-row,
+            .concepts {
+                grid-template-columns: 1fr;
+            }
+
+            body {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+
+    <header>
+        <h1>Student Academic Dependency Analyzer</h1>
+        <p>Linear Algebra & Vector Calculus Mini Project</p>
+    </header>
+
+
+    <!-- INPUT FORM -->
+
+    <div class="card">
+
+        <h2>Student Information</h2>
+
+        <div class="row">
+
+            <div>
+                <label>Student Name</label>
+                <input
+                    type="text"
+                    id="studentName"
+                    placeholder="Enter student name"
+                >
+            </div>
+
+            <div>
+                <label>Number of Academic Components</label>
+
+                <select id="componentCount" onchange="generateFields()">
+                    <option value="">Select</option>
+                    <option value="5">5 Components</option>
+                    <option value="6">6 Components</option>
+                    <option value="7">7 Components</option>
+                    <option value="8">8 Components</option>
+                </select>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- SUBJECT INPUT -->
+
+    <div class="card">
+
+        <h2>Academic Performance Data</h2>
+
+        <div id="subjectFields">
+            <p>Please select the number of academic components.</p>
+        </div>
+
+        <button class="primary" onclick="analyze()">
+            Analyze Performance
+        </button>
+
+        <button class="secondary" onclick="resetForm()">
+            Reset
+        </button>
+
+    </div>
+
+
+    <!-- RESULTS -->
+
+    <div id="results" class="hidden">
+
+        <!-- BASIC PERFORMANCE -->
+
+        <div class="card">
+
+            <h2>1. Academic Performance</h2>
+
+            <div id="basicResults"></div>
+
+        </div>
+
+
+        <!-- FEATURE MATRIX -->
+
+        <div class="card">
+
+            <h2>2. Feature Matrix</h2>
+
+            <p>
+                Columns:
+                <b>Original Marks</b>,
+                <b>Deviation from Average</b>,
+                <b>Normalized Marks</b>
+            </p>
+
+            <div id="matrixResult" class="matrix"></div>
+
+        </div>
+
+
+        <!-- RANK -->
+
+        <div class="card">
+
+            <h2>3. Matrix Rank</h2>
+
+            <div id="rankResult"></div>
+
+        </div>
+
+
+        <!-- DEPENDENCY -->
+
+        <div class="card">
+
+            <h2>4. Linear Dependence / Independence</h2>
+
+            <div id="dependencyResult"></div>
+
+        </div>
+
+
+        <!-- BASIS -->
+
+        <div class="card">
+
+            <h2>5. Basis of Performance Space</h2>
+
+            <div id="basisResult"></div>
+
+        </div>
+
+
+        <!-- GRAM SCHMIDT -->
+
+        <div class="card">
+
+            <h2>6. Gram-Schmidt Orthonormal Basis</h2>
+
+            <div id="gramResult"></div>
+
+        </div>
+
+
+        <!-- ORTHOGONALITY -->
+
+        <div class="card">
+
+            <h2>7. Orthogonality Verification</h2>
+
+            <div id="orthogonalResult"></div>
+
+        </div>
+
+
+        <!-- PROJECTION -->
+
+        <div class="card">
+
+            <h2>8. Projected Performance Vector</h2>
+
+            <div id="projectionResult"></div>
+
+        </div>
+
+
+        <!-- FINAL -->
+
+        <div class="card">
+
+            <h2>9. Final Performance Interpretation</h2>
+
+            <div id="finalResult"></div>
+
+        </div>
+
+
+        <!-- CONCEPTS -->
+
+        <div class="card">
+
+            <h2>Mathematical Concepts Used</h2>
+
+            <div class="concepts">
+
+                <div class="concept">Matrix</div>
+
+                <div class="concept">Rank</div>
+
+                <div class="concept">Linear Dependence</div>
+
+                <div class="concept">Basis</div>
+
+                <div class="concept">Gram-Schmidt</div>
+
+                <div class="concept">Orthogonality</div>
+
+                <div class="concept">Projection</div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <footer>
+        Student Academic Dependency Analyzer |
+        Linear Algebra & Vector Calculus
+    </footer>
+
+</div>
+
+
+<script>
+
+/* ============================================================
+   GENERATE INPUT FIELDS
+   ============================================================ */
+
+function generateFields() {
+
+    const count =
+        parseInt(document.getElementById("componentCount").value);
+
+    const container =
+        document.getElementById("subjectFields");
+
+    container.innerHTML = "";
+
+    if (!count) {
+        container.innerHTML =
+            "<p>Please select the number of academic components.</p>";
+        return;
+    }
+
+    for (let i = 0; i < count; i++) {
+
+        const row = document.createElement("div");
+
+        row.className = "subject-row";
+
+        row.innerHTML = `
+            <div>
+                <label>Component ${i + 1}</label>
+                <input
+                    type="text"
+                    id="subject${i}"
+                    placeholder="e.g. Mathematics"
+                >
+            </div>
+
+            <div>
+                <label>Marks</label>
+                <input
+                    type="number"
+                    id="mark${i}"
+                    min="0"
+                    max="100"
+                    placeholder="0-100"
+                >
+            </div>
+        `;
+
+        container.appendChild(row);
+    }
+}
+
+
+/* ============================================================
+   MATRIX FUNCTIONS
+   ============================================================ */
+
+
+/* Dot product */
+
+function dot(a, b) {
+
+    let result = 0;
+
+    for (let i = 0; i < a.length; i++) {
+        result += a[i] * b[i];
+    }
+
+    return result;
+}
+
+
+/* Vector norm */
+
+function norm(v) {
+
+    return Math.sqrt(dot(v, v));
+
+}
+
+
+/* Matrix rank using Gaussian elimination */
+
+function matrixRank(matrix) {
+
+    let A = matrix.map(row => [...row]);
+
+    const rows = A.length;
+    const cols = A[0].length;
+
+    let rank = 0;
+
+    const tolerance = 1e-10;
+
+    for (let col = 0; col < cols && rank < rows; col++) {
+
+        let pivot = rank;
+
+        for (let i = rank + 1; i < rows; i++) {
+
+            if (
+                Math.abs(A[i][col]) >
+                Math.abs(A[pivot][col])
+            ) {
+                pivot = i;
+            }
+
+        }
+
+        if (Math.abs(A[pivot][col]) <= tolerance) {
+            continue;
+        }
+
+        [A[rank], A[pivot]] =
+            [A[pivot], A[rank]];
+
+        for (let i = rank + 1; i < rows; i++) {
+
+            const factor =
+                A[i][col] / A[rank][col];
+
+            for (let j = col; j < cols; j++) {
+
+                A[i][j] -=
+                    factor * A[rank][j];
+
+            }
+
+        }
+
+        rank++;
+    }
+
+    return rank;
+}
+
+
+/* ============================================================
+   GRAM-SCHMIDT
+   ============================================================ */
+
+function gramSchmidt(vectors) {
+
+    const orthogonal = [];
+
+    for (let v of vectors) {
+
+        let u = [...v];
+
+        for (let q of orthogonal) {
+
+            const coefficient =
+                dot(u, q) / dot(q, q);
+
+            for (let i = 0; i < u.length; i++) {
+
+                u[i] -= coefficient * q[i];
+
+            }
+        }
+
+        if (norm(u) > 1e-10) {
+
+            orthogonal.push(u);
+
+        }
+    }
+
+    /* Normalize */
+
+    return orthogonal.map(v => {
+
+        const length = norm(v);
+
+        return v.map(x => x / length);
+
+    });
+}
+
+
+/* ============================================================
+   VECTOR PROJECTION
+   ============================================================ */
+
+function projectVector(vector, basis) {
+
+    let projection =
+        new Array(vector.length).fill(0);
+
+    for (let u of basis) {
+
+        const coefficient =
+            dot(vector, u) / dot(u, u);
+
+        for (let i = 0; i < vector.length; i++) {
+
+            projection[i] +=
+                coefficient * u[i];
+
+        }
+
+    }
+
+    return projection;
+}
+
+
+/* ============================================================
+   FORMAT MATRIX
+   ============================================================ */
+
+function displayMatrix(matrix) {
+
+    let html = "<table>";
+
+    for (let i = 0; i < matrix.length; i++) {
+
+        html += "<tr>";
+
+        for (let j = 0; j < matrix[i].length; j++) {
+
+            html +=
+                `<td>${matrix[i][j].toFixed(3)}</td>`;
+
+        }
+
+        html += "</tr>";
+
+    }
+
+    html += "</table>";
+
+    return html;
+}
+
+
+/* ============================================================
+   ANALYSIS
+   ============================================================ */
+
+function analyze() {
+
+    const name =
+        document.getElementById("studentName").value.trim();
+
+    const count =
+        parseInt(document.getElementById("componentCount").value);
+
+
+    if (!name) {
+
+        alert("Please enter the student name.");
+
+        return;
+    }
+
+
+    if (!count) {
+
+        alert("Please select the number of components.");
+
+        return;
+    }
+
+
+    const subjects = [];
+
+    const marks = [];
+
+
+    for (let i = 0; i < count; i++) {
+
+        const subject =
+            document.getElementById(`subject${i}`).value.trim();
+
+        const mark =
+            parseFloat(document.getElementById(`mark${i}`).value);
+
+
+        if (!subject) {
+
+            alert(`Please enter Component ${i + 1}.`);
+
+            return;
+
+        }
+
+
+        if (
+            isNaN(mark) ||
+            mark < 0 ||
+            mark > 100
+        ) {
+
+            alert(
+                `Please enter valid marks for ${subject} (0-100).`
+            );
+
+            return;
+
+        }
+
+
+        subjects.push(subject);
+        marks.push(mark);
+
+    }
+
+
+    /* ========================================================
+       AVERAGE
+       ======================================================== */
+
+    const average =
+        marks.reduce((a, b) => a + b, 0) /
+        marks.length;
+
+
+    let performance;
+
+
+    if (average >= 85)
+        performance = "Excellent";
+
+    else if (average >= 75)
+        performance = "Very Good";
+
+    else if (average >= 60)
+        performance = "Good";
+
+    else if (average >= 50)
+        performance = "Average";
+
+    else
+        performance = "Needs Improvement";
+
+
+    /* ========================================================
+       FEATURE MATRIX
+       ======================================================== */
+
+    const maxMark =
+        Math.max(...marks);
+
+
+    const deviation =
+        marks.map(x => x - average);
+
+
+    const normalized =
+        marks.map(x => x / maxMark);
+
+
+    const featureMatrix =
+        marks.map((x, i) => [
+            x,
+            deviation[i],
+            normalized[i]
+        ]);
+
+
+    /* ========================================================
+       DISPLAY BASIC RESULTS
+       ======================================================== */
+
+    document.getElementById("basicResults").innerHTML = `
+        <div class="result-box">
+            <div class="result-title">Student Name</div>
+            ${name}
+        </div>
+
+        <div class="result-box">
+            <div class="result-title">Average Marks</div>
+            ${average.toFixed(2)}
+        </div>
+
+        <div class="result-box">
+            <div class="result-title">Overall Performance</div>
+            <span class="good">${performance}</span>
+        </div>
+    `;
+
+
+    /* ========================================================
+       MATRIX
+       ======================================================== */
+
+    document.getElementById("matrixResult").innerHTML =
+        displayMatrix(featureMatrix);
+
+
+    /* ========================================================
+       RANK
+       ======================================================== */
+
+    const rank =
+        matrixRank(featureMatrix);
+
+
+    document.getElementById("rankResult").innerHTML = `
+        <div class="result-box">
+            <div class="result-title">
+                Rank of Feature Matrix
+            </div>
+
+            <strong>${rank}</strong>
+        </div>
+    `;
+
+
+    /* ========================================================
+       DEPENDENCE
+       ======================================================== */
+
+    const columns = 3;
+
+    let dependencyText;
+
+    if (rank < columns) {
+
+        dependencyText = `
+            <span class="warning">
+                LINEARLY DEPENDENT
+            </span>
+
+            <p>
+                Some features contain redundant information
+                and can be represented using other features.
+            </p>
+        `;
+
+    } else {
+
+        dependencyText = `
+            <span class="good">
+                LINEARLY INDEPENDENT
+            </span>
+
+            <p>
+                The feature vectors provide independent
+                performance directions.
+            </p>
+        `;
+
+    }
+
+
+    document.getElementById("dependencyResult").innerHTML =
+        `<div class="result-box">${dependencyText}</div>`;
+
+
+    /* ========================================================
+       BASIS
+       ======================================================== */
+
+    /*
+       Since the three features are constructed from the
+       original marks, deviation and normalized marks are
+       mathematically related.
+
+       Therefore, the first column is selected as the
+       independent performance direction.
+    */
+
+    const basis = [
+        marks
+    ];
+
+
+    document.getElementById("basisResult").innerHTML = `
+        <div class="result-box">
+            <div class="result-title">
+                Independent Performance Basis
+            </div>
+
+            <p>
+                The original academic-mark vector is used as
+                the primary independent performance direction.
+            </p>
+
+            <br>
+
+            ${displayMatrix([marks])}
+        </div>
+    `;
+
+
+    /* ========================================================
+       GRAM SCHMIDT
+       ======================================================== */
+
+    const orthonormalBasis =
+        gramSchmidt(basis);
+
+
+    document.getElementById("gramResult").innerHTML =
+        displayMatrix(orthonormalBasis);
+
+
+    /* ========================================================
+       ORTHOGONALITY
+       ======================================================== */
+
+    const q = orthonormalBasis[0];
+
+    const qDotQ =
+        dot(q, q);
+
+
+    document.getElementById("orthogonalResult").innerHTML = `
+        <div class="result-box">
+
+            <div class="result-title">
+                Verification
+            </div>
+
+            <p>
+                q · q = ${qDotQ.toFixed(3)}
+            </p>
+
+            <p class="good">
+                The vector is normalized because q · q ≈ 1.
+            </p>
+
+        </div>
+    `;
+
+
+    /* ========================================================
+       PROJECTION
+       ======================================================== */
+
+    const projected =
+        projectVector(marks, orthonormalBasis);
+
+
+    let projectionHTML = `
+        <table>
+
+            <tr>
+                <th>Academic Component</th>
+                <th>Original Marks</th>
+                <th>Projected Value</th>
+            </tr>
+    `;
+
+
+    for (let i = 0; i < subjects.length; i++) {
+
+        projectionHTML += `
+            <tr>
+
+                <td>${subjects[i]}</td>
+
+                <td>${marks[i].toFixed(2)}</td>
+
+                <td>${projected[i].toFixed(2)}</td>
+
+            </tr>
+        `;
+
+    }
+
+
+    projectionHTML += "</table>";
+
+
+    document.getElementById("projectionResult").innerHTML =
+        projectionHTML;
+
+
+    /* ========================================================
+       PROJECTION ERROR
+       ======================================================== */
+
+    let error = 0;
+
+    for (let i = 0; i < marks.length; i++) {
+
+        error +=
+            Math.pow(
+                marks[i] - projected[i],
+                2
+            );
+
+    }
+
+    error = Math.sqrt(error);
+
+
+    /* ========================================================
+       FINAL INTERPRETATION
+       ======================================================== */
+
+    document.getElementById("finalResult").innerHTML = `
+
+        <div class="result-box">
+
+            <div class="result-title">
+                Student
+            </div>
+
+            ${name}
+
+        </div>
+
+
+        <div class="result-box">
+
+            <div class="result-title">
+                Average Performance
+            </div>
+
+            ${average.toFixed(2)}%
+
+        </div>
+
+
+        <div class="result-box">
+
+            <div class="result-title">
+                Performance Level
+            </div>
+
+            <span class="good">
+                ${performance}
+            </span>
+
+        </div>
+
+
+        <div class="result-box">
+
+            <div class="result-title">
+                Matrix Rank
+            </div>
+
+            ${rank}
+
+        </div>
+
+
+        <div class="result-box">
+
+            <div class="result-title">
+                Projection Error
+            </div>
+
+            ${error.toFixed(4)}
+
+        </div>
+
+
+        <div class="result-box">
+
+            <div class="result-title">
+                Interpretation
+            </div>
+
+            <p>
+                The student's academic marks were represented
+                as a mathematical performance vector.
+            </p>
+
+            <br>
+
+            <p>
+                Matrix operations were used to construct and
+                analyze the academic feature space.
+            </p>
+
+            <br>
+
+            <p>
+                The rank identifies the effective dimension
+                of the feature space.
+            </p>
+
+            <br>
+
+            <p>
+                Gram-Schmidt orthogonalization produces an
+                orthonormal performance direction.
+            </p>
+
+            <br>
+
+            <p>
+                Vector projection represents the student's
+                academic performance in the identified
+                performance space.
+            </p>
+
+        </div>
+    `;
+
+
+    /* SHOW RESULTS */
+
+    document.getElementById("results")
+        .classList.remove("hidden");
+
+
+    /* Scroll to results */
+
+    document.getElementById("results")
+        .scrollIntoView({
+            behavior: "smooth"
+        });
+
+}
+
+
+/* ============================================================
+   RESET
+   ============================================================ */
+
+function resetForm() {
+
+    document.getElementById("studentName").value = "";
+
+    document.getElementById("componentCount").value = "";
+
+    document.getElementById("subjectFields").innerHTML =
+        "<p>Please select the number of academic components.</p>";
+
+    document.getElementById("results")
+        .classList.add("hidden");
+
+}
+
+</script>
+
+</body>
+</html>
