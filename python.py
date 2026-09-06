@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 
 # ============================================================
@@ -16,51 +17,64 @@ print("=" * 70)
 # 1. USER INPUT
 # ------------------------------------------------------------
 
-student_name = input("\nEnter Student Name: ")
+# Make the script friendly to non-interactive runs (CI / automated)
+interactive = sys.stdin is not None and sys.stdin.isatty()
 
-# Number of academic components
-while True:
-    try:
-        n = int(input("Enter number of academic components (5-8): "))
+if not interactive:
+    # Non-interactive default data
+    print("\nNon-interactive mode detected: using sample data.")
+    student_name = "Sample Student"
+    n = 5
+    subjects = ["Mathematics", "Physics", "Chemistry", "English", "History"]
+    marks = np.array([85.0, 78.0, 92.0, 74.0, 68.0], dtype=float)
 
-        if 5 <= n <= 8:
-            break
-        else:
-            print("Please enter a number between 5 and 8.")
+else:
 
-    except ValueError:
-        print("Please enter a valid number.")
+    student_name = input("\nEnter Student Name: ")
 
-
-subjects = []
-marks = []
-
-
-print("\nEnter Academic Components and Marks")
-print("-" * 45)
-
-for i in range(n):
-
-    subject = input(f"Enter name of component {i + 1}: ")
-
+    # Number of academic components
     while True:
         try:
-            mark = float(input(f"Enter marks for {subject} (0-100): "))
+            n = int(input("Enter number of academic components (5-8): "))
 
-            if 0 <= mark <= 100:
+            if 5 <= n <= 8:
                 break
             else:
-                print("Marks must be between 0 and 100.")
+                print("Please enter a number between 5 and 8.")
 
         except ValueError:
             print("Please enter a valid number.")
 
-    subjects.append(subject)
-    marks.append(mark)
+
+    subjects = []
+    marks = []
 
 
-# Convert marks into NumPy array
-marks = np.array(marks, dtype=float)
+    print("\nEnter Academic Components and Marks")
+    print("-" * 45)
+
+    for i in range(n):
+
+        subject = input(f"Enter name of component {i + 1}: ")
+
+        while True:
+            try:
+                mark = float(input(f"Enter marks for {subject} (0-100): "))
+
+                if 0 <= mark <= 100:
+                    break
+                else:
+                    print("Marks must be between 0 and 100.")
+
+            except ValueError:
+                print("Please enter a valid number.")
+
+        subjects.append(subject)
+        marks.append(mark)
+
+
+    # Convert marks into NumPy array
+    marks = np.array(marks, dtype=float)
 
 
 # ------------------------------------------------------------
@@ -193,7 +207,7 @@ print(np.round(basis, 3))
 
 
 # ------------------------------------------------------------
-# 8. GRAM-SCHMIDT ORTHOGONALIZATION
+# 8. GRAM-SCHMIDT ORTHONOGONALIZATION
 # ------------------------------------------------------------
 
 def gram_schmidt(matrix):
