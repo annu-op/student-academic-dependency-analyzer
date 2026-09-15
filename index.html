@@ -512,6 +512,10 @@ function norm(v) {
 
 function matrixRank(matrix) {
 
+    if (!matrix || matrix.length === 0 || !matrix[0] || matrix[0].length === 0) {
+        return 0;
+    }
+
     let A = matrix.map(row => [...row]);
 
     const rows = A.length;
@@ -638,7 +642,27 @@ function projectVector(vector, basis) {
    FORMAT MATRIX
    ============================================================ */
 
+function safeNormalizeMarks(marks) {
+
+    if (!marks || marks.length === 0) {
+        return [];
+    }
+
+    const maxMark = Math.max(...marks);
+
+    if (maxMark <= 0) {
+        return marks.map(() => 0);
+    }
+
+    return marks.map(value => value / maxMark);
+}
+
+
 function displayMatrix(matrix) {
+
+    if (!matrix || matrix.length === 0) {
+        return "<p>No data available.</p>";
+    }
 
     let html = "<table>";
 
@@ -648,8 +672,10 @@ function displayMatrix(matrix) {
 
         for (let j = 0; j < matrix[i].length; j++) {
 
+            const value = Number(matrix[i][j]);
+
             html +=
-                `<td>${matrix[i][j].toFixed(3)}</td>`;
+                `<td>${Number.isFinite(value) ? value.toFixed(3) : "0.000"}</td>`;
 
         }
 
@@ -777,7 +803,7 @@ function analyze() {
 
 
     const normalized =
-        marks.map(x => x / maxMark);
+        safeNormalizeMarks(marks);
 
 
     const featureMatrix =
@@ -891,9 +917,10 @@ function analyze() {
        independent performance direction.
     */
 
-    const basis = [
-        marks
-    ];
+    const basis =
+        marks.some(mark => Math.abs(mark) > 1e-10)
+            ? [marks]
+            : [];
 
 
     document.getElementById("basisResult").innerHTML = `
@@ -903,13 +930,14 @@ function analyze() {
             </div>
 
             <p>
-                The original academic-mark vector is used as
-                the primary independent performance direction.
+                ${basis.length > 0
+                    ? "The original academic-mark vector is used as the primary independent performance direction."
+                    : "No non-zero performance direction is available for the selected marks."}
             </p>
 
             <br>
 
-            ${displayMatrix([marks])}
+            ${basis.length > 0 ? displayMatrix([marks]) : "<p>No basis vector available.</p>"}
         </div>
     `;
 
@@ -923,14 +951,16 @@ function analyze() {
 
 
     document.getElementById("gramResult").innerHTML =
-        displayMatrix(orthonormalBasis);
+        orthonormalBasis.length > 0
+            ? displayMatrix(orthonormalBasis)
+            : "<div class=\"result-box\"><p>No orthonormal basis available.</p></div>";
 
 
     /* ========================================================
        ORTHOGONALITY
        ======================================================== */
 
-    const q = orthonormalBasis[0];
+    const q = orthonormalBasis[0] || new Array(marks.length).fill(0);
 
     const qDotQ =
         dot(q, q);
@@ -947,8 +977,10 @@ function analyze() {
                 q · q = ${qDotQ.toFixed(3)}
             </p>
 
-            <p class="good">
-                The vector is normalized because q · q ≈ 1.
+            <p class="${orthonormalBasis.length > 0 ? "good" : "warning"}">
+                ${orthonormalBasis.length > 0
+                    ? "The vector is normalized because q · q ≈ 1."
+                    : "No non-zero basis vector exists, so orthogonality cannot be verified."}
             </p>
 
         </div>
