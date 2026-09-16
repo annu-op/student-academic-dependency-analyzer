@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Academic Dependency Analyzer</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f6f9;color:#222;margin:0}
+header{background:#111827;color:#fff;padding:30px;text-align:center}
+.container{width:95%;max-width:1200px;margin:25px auto}
+.card{background:#fff;border-radius:14px;padding:24px;margin-bottom:22px;box-shadow:0 5px 20px #ddd}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+input,select{padding:11px;border:1px solid #ccc;border-radius:8px}
+button{border:0;border-radius:8px;padding:11px 16px;font-weight:bold;cursor:pointer}
+.btn-primary{background:#2563eb;color:#fff}.btn-success{background:#16a34a;color:#fff}.btn-danger{background:#dc2626;color:#fff}.btn-secondary{background:#6b7280;color:#fff}.btn-dark{background:#111827;color:#fff}
+.subject-row{display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr 1fr auto;gap:8px;margin:8px 0}
+.grade-box{background:#eee;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{text-align:center;background:#f9fafb;padding:15px;border:1px solid #ddd;border-radius:10px}
+.stat h3{font-size:28px;color:#2563eb;margin:0 0 5px}
+.result-section{display:none}.result-box{background:#f9fafb;border:1px solid #ddd;border-radius:10px;padding:15px;margin-top:15px}
+pre{background:#111827;color:#eee;padding:15px;overflow:auto}
+table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ddd;padding:9px;text-align:center}th{background:#111827;color:#fff}
+.button-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.info-note{background:#eff6ff;padding:12px;margin-top:12px;border-left:4px solid #2563eb}
+@media(max-width:800px){.form-grid,.stats{grid-template-columns:1fr 1fr}.subject-row{grid-template-columns:1fr}.subject-row button{grid-column:1/-1}}
+@media(max-width:550px){.form-grid,.stats{grid-template-columns:1fr}}
+@media print{button,.no-print{display:none!important}.card{box-shadow:none}}
+</style>
+</head>
+<body>
+<header><h1>Student Academic Dependency Analyzer</h1><p>Linear Algebra &amp; Vector Calculus Based Academic Analysis</p></header>
+<div class="container">
+
+<div class="card">
+<h2>Student Information</h2>
+<div class="form-grid">
+<div class="form-group"><label>Student Name</label><input id="studentName" placeholder="Enter student name"></div>
+<div class="form-group"><label>Register Number</label><input id="registerNumber" placeholder="Enter register number"></div>
+<div class="form-group"><label>B.Tech Branch</label><select id="branch"><option value="">Select Branch</option>
+<option>B.Tech. Computer Science &amp; Engineering (Artificial Intelligence &amp; Machine Learning)</option>
+<option>B.Tech. Robotics &amp; Artificial Intelligence</option>
+<option>B.Tech Computer Science &amp; Technology (Big Data)</option>
+<option>B.Tech. Computer Science &amp; Engineering (Data Science)</option>
+<option>B.Tech. Artificial Intelligence and Data Science</option>
+<option>B.Tech Computer Science &amp; Engineering (Cyber Security)</option>
+<option>B.Tech Computer Science &amp; Engineering (Internet of Things)</option>
+<option>B.Tech. Computer Science &amp; Engineering (Block Chain)</option>
+<option>B.Tech Computer Science &amp; Technology (DevOps)</option></select></div>
+<div class="form-group"><label>Year</label><select id="year" onchange="updateSemester()"><option value="">Select Year</option><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option></select></div>
+<div class="form-group"><label>Semester</label><select id="semester"><option value="">Select Semester</option></select></div>
+</div>
+<div class="info-note">Semester GPA is calculated as SGPA. CGPA is calculated cumulatively from all saved semesters.</div>
+</div>
+
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center"><h2>Academic Subjects</h2><button class="btn-primary no-print" onclick="addSubject()">+ Add Subject</button></div>
+<div class="subject-row" style="font-weight:bold"><div>Subject Name</div><div>Marks</div><div>Credits</div><div>Grade</div><div>Grade Point</div><div></div></div>
+<div id="subjectsContainer"></div>
+<div class="info-note">You can add unlimited subjects. Enter marks and credits for each subject.</div>
+<div class="button-row no-print"><button class="btn-success" onclick="analyze()">Analyze Semester</button><button class="btn-secondary" onclick="resetForm()">Reset</button></div>
+</div>
+
+<div class="card result-section" id="resultSection">
+<h2>Semester Analysis Result</h2>
+<div class="stats">
+<div class="stat"><h3 id="subjectCount">0</h3><p>Total Subjects</p></div>
+<div class="stat"><h3 id="totalCredits">0</h3><p>Total Credits</p></div>
+<div class="stat"><h3 id="semesterSGPA">0.00</h3><p>Semester SGPA</p></div>
+<div class="stat"><h3 id="matrixRank">0</h3><p>Matrix Rank</p></div>
+</div>
+<div class="result-box"><h3>Grade Summary</h3><div id="gradeSummary"></div></div>
+<div class="result-box"><h3>Feature Matrix</h3><pre id="matrixOutput"></pre></div>
+<div class="result-box"><h3>Linear Dependence / Independence</h3><p id="dependencyOutput"></p></div>
+<div class="result-box"><h3>Basis</h3><pre id="basisOutput"></pre></div>
+<div class="result-box"><h3>Gram-Schmidt Orthogonalization</h3><pre id="gramOutput"></pre></div>
+<div class="result-box"><h3>Projection</h3><pre id="projectionOutput"></pre></div>
+<div class="result-box"><h3>Interpretation</h3><p id="interpretationOutput"></p></div>
+<div class="button-row no-print"><button class="btn-primary" onclick="saveResult()">Save Semester Result</button><button class="btn-dark" onclick="downloadCurrentResult()">Download Result</button><button class="btn-secondary" onclick="window.print()">Print / Save PDF</button></div>
+</div>
+
+<div class="card">
+<h2>Saved Academic History</h2>
+<div class="stats">
+<div class="stat"><h3 id="savedSemesterCount">0</h3><p>Saved Semesters</p></div>
+<div class="stat"><h3 id="historyCredits">0</h3><p>Total Credits</p></div>
+<div class="stat"><h3 id="historySubjects">0</h3><p>Total Subjects</p></div>
+<div class="stat"><h3 id="historyCGPA">0.00</h3><p>Overall CGPA</p></div>
+</div>
+<div style="overflow:auto"><table><thead><tr><th>Semester</th><th>Subjects</th><th>Credits</th><th>SGPA</th><th>CGPA</th><th class="no-print">Actions</th></tr></thead><tbody id="historyBody"></tbody></table></div>
+<p id="emptyHistory" style="text-align:center;color:#777">No semester results saved yet.</p>
+<div class="button-row no-print"><button class="btn-dark" onclick="downloadFullReport()">Download Complete Report</button><button class="btn-secondary" onclick="window.print()">Print / Save PDF</button></div>
+</div>
+
+<div class="card">
+<h2>Default Grading Scale</h2>
+<table><tr><th>Marks</th><th>Grade</th><th>Grade Point</th></tr>
+<tr><td>90–100</td><td>O</td><td>10</td></tr><tr><td>80–89</td><td>A+</td><td>9</td></tr><tr><td>70–79</td><td>A</td><td>8</td></tr><tr><td>60–69</td><td>B+</td><td>7</td></tr><tr><td>55–59</td><td>B</td><td>6</td></tr><tr><td>50–54</td><td>C</td><td>5</td></tr><tr><td>40–49</td><td>P</td><td>4</td></tr><tr><td>0–39</td><td>F</td><td>0</td></tr></table>
+</div>
+</div>
+
+<script>
+let currentAnalysis=null;
+function updateSemester(){const y=document.getElementById("year").value,s=document.getElementById("semester");s.innerHTML='<option value="">Select Semester</option>';if(!y)return;const start={1:1,2:3,3:5,4:7}[y];for(let i=0;i<2;i++){let o=document.createElement("option");o.value=start+i;o.textContent="Semester "+(start+i);s.appendChild(o)}}
+function getGrade(m){m=Number(m);if(m>=90)return["O",10];if(m>=80)return["A+",9];if(m>=70)return["A",8];if(m>=60)return["B+",7];if(m>=55)return["B",6];if(m>=50)return["C",5];if(m>=40)return["P",4];return["F",0]}
+function addSubject(name="",marks="",credits=4){const c=document.getElementById("subjectsContainer"),r=document.createElement("div");r.className="subject-row";r.innerHTML='<input class="subject-name" placeholder="Subject name"><input type="number" class="subject-marks" min="0" max="100" step=".01" placeholder="0–100" oninput="updateGrade(this)"><input type="number" class="subject-credits" min=".5" step=".5" placeholder="Credits"><input class="subject-grade grade-box" readonly><input class="subject-point grade-box" readonly><button class="btn-danger no-print" onclick="removeSubject(this)">Remove</button>';c.appendChild(r);r.querySelector(".subject-name").value=name;r.querySelector(".subject-marks").value=marks;r.querySelector(".subject-credits").value=credits;if(marks!=="")updateGrade(r.querySelector(".subject-marks"))}
+function removeSubject(b){const rows=document.querySelectorAll("#subjectsContainer .subject-row");if(rows.length<=1){alert("At least one subject is required.");return}b.parentElement.remove()}
+function updateGrade(i){const m=Number(i.value),r=i.parentElement;if(i.value===""||isNaN(m)||m<0||m>100){r.querySelector(".subject-grade").value="";r.querySelector(".subject-point").value="";return}const g=getGrade(m);r.querySelector(".subject-grade").value=g[0];r.querySelector(".subject-point").value=g[1]}
+function getSubjects(){let a=[];document.querySelectorAll("#subjectsContainer .subject-row").forEach(r=>{let n=r.querySelector(".subject-name").value.trim(),m=Number(r.querySelector(".subject-marks").value),c=Number(r.querySelector(".subject-credits").value);if(n&&m>=0&&m<=100&&c>0){let g=getGrade(m);a.push({name:n,marks:m,credits:c,grade:g[0],gradePoint:g[1]})}});return a}
+function dot(a,b){return a.reduce((s,v,i)=>s+v*b[i],0)}function norm(a){return Math.sqrt(dot(a,a))}function sub(a,b){return a.map((v,i)=>v-b[i])}function mul(a,s){return a.map(v=>v*s)}function rnd(v){return Number(v.toFixed(4))}
+function rank(M){let A=M.map(r=>r.slice()),R=A.length,C=A[0].length,k=0;for(let c=0;c<C&&k<R;c++){let p=k;for(let r=k+1;r<R;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;if(Math.abs(A[p][c])<1e-9)continue;[A[k],A[p]]=[A[p],A[k]];for(let r=k+1;r<R;r++){let f=A[r][c]/A[k][c];for(let j=c;j<C;j++)A[r][j]-=f*A[k][j]}k++}return k}
+function gs(vs){let q=[];vs.forEach(v=>{let u=v.slice();q.forEach(x=>u=sub(u,mul(x,dot(u,x))));let n=norm(u);if(n>1e-9)q.push(mul(u,1/n))});return q}
+function fmt(M){return M.map(r=>"[ "+r.map(rnd).join(", ")+" ]").join("\n")}
+function analyze(){let name=studentName.value.trim(),reg=registerNumber.value.trim(),br=branch.value,y=year.value,sem=semester.value;if(!name||!reg||!br||!y||!sem){alert("Please complete student information.");return}let ss=getSubjects();if(!ss.length){alert("Please enter at least one valid subject.");return}let tc=0,wp=0;ss.forEach(s=>{tc+=s.credits;wp+=s.credits*s.gradePoint});let sg=wp/tc,marks=ss.map(s=>s.marks),mean=marks.reduce((a,b)=>a+b,0)/marks.length,X=marks,D=marks.map(v=>v-mean),mx=Math.max(...marks),N=mx?marks.map(v=>v/mx):marks.map(()=>0),M=marks.map((_,i)=>[X[i],D[i],N[i]]),rk=rank(M),vs=[X,D,N],names=["Marks Vector X","Deviation Vector D","Normalized Vector N"],basis=[],bn=[];let cr=0;vs.forEach((v,i)=>{if(cr===rk)return;let T=basis.length?v.map((x,j)=>[...basis.map(b=>b[j]),x]):v.map(x=>[x]),nr=rank(T);if(nr>cr){basis.push(v);bn.push(names[i]);cr=nr}});let q=gs(basis),proj=marks.map(()=>0);q.forEach(x=>{let c=dot(X,x);proj=proj.map((v,i)=>v+c*x[i])});currentAnalysis={name,register:reg,branch:br,year:y,semester:sem,subjects:ss,sgpa:sg,totalCredits:tc,featureMatrix:M,rank:rk,basisNames:bn,orthogonalBasis:q,projectionText:proj.map(rnd).join(", "),interpretation:`The student has ${ss.length} subject(s) with ${rnd(tc)} credits. SGPA is ${sg.toFixed(2)}. The feature matrix has rank ${rk}.`};display(currentAnalysis)}
+function display(d){resultSection.style.display="block";subjectCount.textContent=d.subjects.length;totalCredits.textContent=rnd(d.totalCredits);semesterSGPA.textContent=d.sgpa.toFixed(2);matrixRank.textContent=d.rank;gradeSummary.innerHTML="<table><tr><th>Subject</th><th>Marks</th><th>Credits</th><th>Grade</th><th>Grade Point</th></tr>"+d.subjects.map(s=>`<tr><td>${esc(s.name)}</td><td>${s.marks}</td><td>${s.credits}</td><td>${s.grade}</td><td>${s.gradePoint}</td></tr>`).join("")+"</table>";matrixOutput.textContent=fmt(d.featureMatrix);dependencyOutput.textContent=d.rank<3?"Linearly Dependent":"Linearly Independent";basisOutput.textContent=d.basisNames.join("\n");gramOutput.textContent=d.orthogonalBasis.map((v,i)=>`q${i+1} = [ ${v.map(rnd).join(", ")} ]`).join("\n");projectionOutput.textContent="[ "+d.projectionText+" ]";interpretationOutput.textContent=d.interpretation;resultSection.scrollIntoView({behavior:"smooth"})}
+function getHistory(){return JSON.parse(localStorage.getItem("academicAnalyzerResults")||"[]")}
+function saveResult(){if(!currentAnalysis){analyze();if(!currentAnalysis)return}let h=getHistory(),id=currentAnalysis.register+"_semester_"+currentAnalysis.semester;h=h.filter(x=>x.id!==id);h.push({...currentAnalysis,id});localStorage.setItem("academicAnalyzerResults",JSON.stringify(h));loadHistory();alert("Semester result saved successfully.")}
+function loadHistory(){let reg=registerNumber.value.trim(),h=getHistory().filter(x=>x.register===reg).sort((a,b)=>Number(a.semester)-Number(b.semester)),b=historyBody;b.innerHTML="";emptyHistory.style.display=h.length?"none":"block";let tc=0,ts=0,wp=0,cc=0,cp=0;h.forEach(x=>{tc+=+x.totalCredits;ts+=x.subjects.length;wp+=x.sgpa*x.totalCredits;cc+=+x.totalCredits;cp+=x.sgpa*x.totalCredits;let tr=document.createElement("tr");tr.innerHTML=`<td>Semester ${x.semester}</td><td>${x.subjects.length}</td><td>${rnd(x.totalCredits)}</td><td>${(+x.sgpa).toFixed(2)}</td><td>${(cp/cc).toFixed(2)}</td><td class="no-print"><button class="btn-primary" onclick="viewSemester('${esc(x.id)}')">View</button> <button class="btn-success" onclick="editSemester('${esc(x.id)}')">Edit</button> <button class="btn-dark" onclick="downloadSemester('${esc(x.id)}')">Download</button> <button class="btn-danger" onclick="deleteSemester('${esc(x.id)}')">Delete</button></td>`;b.appendChild(tr)});savedSemesterCount.textContent=h.length;historyCredits.textContent=rnd(tc);historySubjects.textContent=ts;historyCGPA.textContent=(tc?wp/tc:0).toFixed(2)}
+function viewSemester(id){let x=getHistory().find(r=>r.id===id);if(x){currentAnalysis=x;display(x)}}
+function editSemester(id){let x=getHistory().find(r=>r.id===id);if(!x)return;studentName.value=x.name;registerNumber.value=x.register;branch.value=x.branch;year.value=x.year;updateSemester();semester.value=x.semester;subjectsContainer.innerHTML="";x.subjects.forEach(s=>addSubject(s.name,s.marks,s.credits));currentAnalysis=x;scrollTo({top:0,behavior:"smooth"})}
+function deleteSemester(id){if(!confirm("Delete this semester result?"))return;localStorage.setItem("academicAnalyzerResults",JSON.stringify(getHistory().filter(x=>x.id!==id)));loadHistory()}
+function report(d){return `<!doctype html><html><head><meta charset="UTF-8"><title>Semester ${d.semester} Result</title><style>body{font-family:Arial;margin:40px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aaa;padding:8px;text-align:center}th{background:#eee}pre{background:#eee;padding:10px}</style></head><body><h1>Student Academic Dependency Analyzer</h1><p><b>Name:</b> ${esc(d.name)}</p><p><b>Register:</b> ${esc(d.register)}</p><p><b>Branch:</b> ${esc(d.branch)}</p><p><b>Semester:</b> ${d.semester}</p><h2>SGPA: ${d.sgpa.toFixed(2)}</h2><table><tr><th>Subject</th><th>Marks</th><th>Credits</th><th>Grade</th><th>Point</th></tr>${d.subjects.map(s=>`<tr><td>${esc(s.name)}</td><td>${s.marks}</td><td>${s.credits}</td><td>${s.grade}</td><td>${s.gradePoint}</td></tr>`).join("")}</table><h2>Feature Matrix</h2><pre>${fmt(d.featureMatrix)}</pre><h2>Rank</h2><p>${d.rank}</p><h2>Dependency</h2><p>${d.rank<3?"Linearly Dependent":"Linearly Independent"}</p><h2>Basis</h2><pre>${d.basisNames.join("\n")}</pre><h2>Gram-Schmidt</h2><pre>${d.orthogonalBasis.map((v,i)=>`q${i+1} = [ ${v.map(rnd).join(", ")} ]`).join("\n")}</pre><h2>Projection</h2><pre>[ ${d.projectionText} ]</pre></body></html>`}
+function dl(c,n){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([c],{type:"text/html"}));a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function downloadCurrentResult(){if(currentAnalysis)dl(report(currentAnalysis),`Semester_${currentAnalysis.semester}_Result.html`);else alert("Please analyze a semester first.")}
+function downloadSemester(id){let x=getHistory().find(r=>r.id===id);if(x)dl(report(x),`Semester_${x.semester}_Result.html`)}
+function downloadFullReport(){let reg=registerNumber.value.trim(),h=getHistory().filter(x=>x.register===reg).sort((a,b)=>+a.semester-+b.semester);if(!h.length){alert("No saved semesters found for this register number.");return}let tc=0,wp=0;h.forEach(x=>{tc+=+x.totalCredits;wp+=x.sgpa*x.totalCredits});let c=(tc?wp/tc:0),html=`<!doctype html><html><head><meta charset="UTF-8"><title>Complete Academic Report</title><style>body{font-family:Arial;margin:40px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aaa;padding:8px;text-align:center}th{background:#eee}</style></head><body><h1>Student Academic Dependency Analyzer</h1><p><b>Name:</b> ${esc(h[0].name)}</p><p><b>Register:</b> ${esc(h[0].register)}</p><p><b>Branch:</b> ${esc(h[0].branch)}</p><h2>Overall CGPA: ${c.toFixed(2)}</h2>`;h.forEach(x=>{html+=`<h2>Semester ${x.semester} — SGPA ${x.sgpa.toFixed(2)}</h2><table><tr><th>Subject</th><th>Marks</th><th>Credits</th><th>Grade</th><th>Point</th></tr>${x.subjects.map(s=>`<tr><td>${esc(s.name)}</td><td>${s.marks}</td><td>${s.credits}</td><td>${s.grade}</td><td>${s.gradePoint}</td></tr>`).join("")}</table>`});dl(html+"</body></html>","Complete_Academic_Report.html")}
+function resetForm(){studentName.value="";registerNumber.value="";branch.value="";year.value="";semester.innerHTML='<option value="">Select Semester</option>';subjectsContainer.innerHTML="";resultSection.style.display="none";currentAnalysis=null;createInitialSubjects();loadHistory()}
+function createInitialSubjects(){for(let i=0;i<5;i++)addSubject()}
+function esc(v){return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
+registerNumber.addEventListener("input",loadHistory);createInitialSubjects();loadHistory();
+</script>
+</body>
+</html>
